@@ -1,5 +1,13 @@
+# NPM
 node_modules
-build
 npm-debug.log
+
+# Build artifacts
+build
+dist
+
+# Local
 .env
+
+# Mac file system
 .DS_Store
