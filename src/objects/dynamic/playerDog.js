@@ -1,6 +1,7 @@
-import { vec2, Color, keyIsDown } from "littlejsengine";
+import { vec2, keyIsDown } from "littlejsengine";
 
 import { DynamicObject } from "./dynamicObjects.js";
+import { spriteAtlas } from "../../scripts/spriteAtlas.js";
 
 export class PlayerDog extends DynamicObject {
     // Keep track of the most recent active player on the class
@@ -10,7 +11,6 @@ export class PlayerDog extends DynamicObject {
         super({
             pos: pos,
             size: vec2(0.6),
-            color: new Color(130 / 256, 70 / 256, 30 / 256, 1),
         });
         this.setCollision(false);
         PlayerDog.player1 = this;
@@ -31,5 +31,9 @@ export class PlayerDog extends DynamicObject {
         ).scale(0.075);
         this.velocity = this.velocity.add(move_input_force).clampLength(this.max_velocity);
         this.velocity = this.velocity.scale(this.friction);
+    }
+
+    render() {
+        this.dynamicRender(spriteAtlas.dog.run);
     }
 }

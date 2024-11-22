@@ -2,6 +2,7 @@ import { vec2, Color, rand, randVector, keyWasPressed } from "littlejsengine";
 
 import { DynamicObject } from "./dynamicObjects.js";
 import { PlayerDog } from "./playerDog.js";
+import { spriteAtlas } from "../../scripts/spriteAtlas.js";
 
 export class SheepIndexer {
     constructor() {
@@ -149,5 +150,8 @@ export class Sheep extends DynamicObject {
         this.velocity = this.velocity.clampLength(this.max_velocity);
 
         this.color = new Color(1, 1 - this.startled_pct, 1 - this.startled_pct, 1);
+    }
+    render() {
+        this.dynamicRender(spriteAtlas.sheep.waddle);
     }
 }

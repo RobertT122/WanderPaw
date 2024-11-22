@@ -15,6 +15,8 @@ import { PlayerDog } from "./objects/dynamic/playerDog.js";
 import { Sheep } from "./objects/dynamic/sheep.js";
 import { Wall } from "./objects/static/wall.js";
 
+import tiles from "./assets/sprites/tiles.png";
+
 // Globals
 const levelSize = vec2(38, 20); // Size of play area
 
@@ -67,5 +69,4 @@ function gameRenderPost() {
     );
 }
 
-// Start LittleJS engine
-engineInit(gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost);
+engineInit(gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost, [tiles]);
