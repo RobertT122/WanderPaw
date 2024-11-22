@@ -1,4 +1,4 @@
-import { vec2, Color, mousePos } from "littlejsengine";
+import { vec2, Color, keyIsDown } from "littlejsengine";
 
 import { DynamicObject } from "./dynamicObjects.js";
 
@@ -12,13 +12,24 @@ export class PlayerDog extends DynamicObject {
             size: vec2(0.6),
             color: new Color(130 / 256, 70 / 256, 30 / 256, 1),
         });
+        this.setCollision(false);
         PlayerDog.player1 = this;
-        console.log("Creating dog");
-        this.pos = mousePos;
+
+        // Behavior variables
+        this.max_velocity = 0.15;
+
+        // Movement parameters
+        this.friction = 0.9;
     }
 
     update() {
+        super.update();
         // Move player to mouse
-        this.pos = mousePos;
+        const move_input_force = vec2(
+            keyIsDown("ArrowRight") - keyIsDown("ArrowLeft"),
+            keyIsDown("ArrowUp") - keyIsDown("ArrowDown"),
+        ).scale(0.075);
+        this.velocity = this.velocity.add(move_input_force).clampLength(this.max_velocity);
+        this.velocity = this.velocity.scale(this.friction);
     }
 }

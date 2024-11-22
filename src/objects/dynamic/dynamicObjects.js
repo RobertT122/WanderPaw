@@ -5,12 +5,4 @@ export class DynamicObject extends GameObject {
         super(args);
         this.setCollision(true, true);
     }
-
-    update() {
-        super.update();
-    }
-
-    destroy() {
-        super.destroy();
-    }
 }

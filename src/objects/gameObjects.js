@@ -11,7 +11,4 @@ export class GameObject extends EngineObject {
     } = {}) {
         super(pos, size, tileInfo, angle, color, renderOrder);
     }
-    update() {
-        super.update();
-    }
 }

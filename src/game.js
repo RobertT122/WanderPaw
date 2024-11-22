@@ -1,11 +1,3 @@
-/*
-    Little JS Breakout Game
-    - A simple breakout game
-    - Includes sound and particles
-    - Uses a post processing effect
-    - Control with mouse, touch, or gamepad
-*/
-
 import {
     engineInit,
     vec2,
@@ -13,7 +5,6 @@ import {
     canvasFixedSize,
     cameraPos,
     drawRect,
-    EngineObject,
     mousePos,
     drawTextScreen,
     mainCanvasSize,
@@ -22,62 +13,45 @@ import {
 
 import { PlayerDog } from "./objects/dynamic/playerDog.js";
 import { Sheep } from "./objects/dynamic/sheep.js";
+import { Wall } from "./objects/static/wall.js";
 
-/*
-    Little JS Breakout Tutorial
-    - Shows how to make a simple breakout game
-    - Includes sound and particles
-    - Control with mouse or touch
-*/
+// Globals
+const levelSize = vec2(38, 20); // Size of play area
 
-///////////////////////////////////////////////////////////////////////////////
-
-// globals
-const levelSize = vec2(38, 20); // size of play area
-
-///////////////////////////////////////////////////////////////////////////////
-
-class Wall extends EngineObject {
-    constructor(pos, size) {
-        super(pos, size); // set object position and size
-
-        this.setCollision(); // make object collide
-        this.mass = 0; // make object have static physics
-        this.color = new Color(0.5, 0.5, 0.5); // make object invisible
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
-    cameraPos.set(levelSize.scale(0.5).x, levelSize.scale(0.5).y); // center camera in level
-    canvasFixedSize.set(1280, 720); // use a 720p fixed size canvas
+    // Center camera in level
+    cameraPos.set(levelSize.scale(0.5).x, levelSize.scale(0.5).y);
 
-    new PlayerDog(mousePos); // create player's player
+    // Use a 720p fixed size canvas
+    canvasFixedSize.set(1280, 720);
+
+    // Create player
+    new PlayerDog(vec2(levelSize.x / 2, levelSize.y / 2));
 
     // create walls
-    new Wall(vec2(-0.5, levelSize.y / 2), vec2(1, 100)); // top
-    new Wall(vec2(-0.5, levelSize.y + 0.5), vec2(1, 100)); // bottom
-    new Wall(vec2(levelSize.x + 0.5, levelSize.y / 2), vec2(1, 100)); // left
-    new Wall(vec2(levelSize.x / 2, levelSize.y + 0.5), vec2(100, 1)); // right
+    new Wall(vec2(-0.5, levelSize.y / 2), vec2(1, 100)); // Left
+    new Wall(vec2(-0.5, levelSize.y + 0.5), vec2(1, 100)); // Bottom
+    new Wall(vec2(levelSize.x + 0.5, levelSize.y / 2), vec2(1, 100)); // Left
+    new Wall(vec2(levelSize.x / 2, levelSize.y + 0.5), vec2(100, 1)); // Right
 }
 
-///////////////////////////////////////////////////////////////////////////////
 function gameUpdate() {
-    if (keyWasPressed("KeyS")) {
+    if (keyWasPressed("KeyF")) {
         new Sheep(mousePos);
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
-function gameUpdatePost() {}
-
-///////////////////////////////////////////////////////////////////////////////
-function gameRender() {
-    drawRect(cameraPos, vec2(100), new Color(160 / 256, 200 / 256, 140 / 256)); // draw background
+function gameUpdatePost() {
+    cameraPos.set(PlayerDog.player1.pos.x, PlayerDog.player1.pos.y);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+function gameRender() {
+    // Draw background
+    drawRect(cameraPos, vec2(100), new Color(160 / 256, 200 / 256, 140 / 256));
+}
+
 function gameRenderPost() {
+    // Debug text for number of sheep and startled % statistics
     drawTextScreen(
         "# sheep " +
             Sheep.flock.all().length +
@@ -90,9 +64,8 @@ function gameRenderPost() {
                 100,
         vec2(mainCanvasSize.x / 2, 70),
         30,
-    ); // show score
+    );
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Startup LittleJS Engine
+// Start LittleJS engine
 engineInit(gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost);

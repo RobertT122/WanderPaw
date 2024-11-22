@@ -3,7 +3,7 @@ import { vec2, Color, rand, randVector, keyWasPressed } from "littlejsengine";
 import { DynamicObject } from "./dynamicObjects.js";
 import { PlayerDog } from "./playerDog.js";
 
-export class SheepIndex {
+export class SheepIndexer {
     constructor() {
         this.arr = new Array();
     }
@@ -27,7 +27,7 @@ export class SheepIndex {
 }
 
 export class Sheep extends DynamicObject {
-    static flock = new SheepIndex();
+    static flock = new SheepIndexer();
 
     constructor(pos) {
         super({
@@ -87,7 +87,7 @@ export class Sheep extends DynamicObject {
         }
 
         // Avoid the player after bark
-        if (keyWasPressed("KeyB") && player_dist <= this.avoid_bark_radius) {
+        if (keyWasPressed("Space") && player_dist <= this.avoid_bark_radius) {
             this.startled_pct = 1;
             const avoid_player_bark_force = this.pos
                 .subtract(PlayerDog.player1.pos)
@@ -99,9 +99,7 @@ export class Sheep extends DynamicObject {
         // Enable boid/herding behavior when nearby the player
         if (player_dist <= this.herding_player_radius) {
             const visible_sheep = Sheep.flock.within(this, this.visible_sheep_radius);
-            const avoided_sheep = visible_sheep.filter(
-                (sheep) => this.pos.distance(sheep.pos) <= this.protected_sheep_radius,
-            );
+            const avoided_sheep = Sheep.flock.within(this, this.protected_sheep_radius);
 
             // Avoid other sheep within a protected range
             const avoid_sheep_force = avoided_sheep.reduce(
