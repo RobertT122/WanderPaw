@@ -25,6 +25,49 @@ export class PlayerDog extends DynamicObject {
     renderRun = () => this.dynamicRender(spriteAtlas.dog.run);
     renderIdle = () => this.dynamicRender(spriteAtlas.dog.idle);
 
+    calculateMovement() {
+        var xInput = keyIsDown("ArrowRight") ? (keyIsDown("ArrowLeft") ? 0 : 1) : (keyIsDown("ArrowLeft") ? -1 : 0);
+        var yInput = keyIsDown("ArrowUp") ? (keyIsDown("ArrowDown") ? 0 : 1) : (keyIsDown("ArrowDown") ? -1 : 0);
+
+        if (yInput == 1){
+            switch (xInput){
+                case 1:
+                    this.moveUpRight();
+                    break;
+                case -1:
+                    this.moveUpLeft();
+                    break;
+                default:
+                    this.moveUp();
+                    break;
+            }
+        }else if (xInput == -1) {
+            switch (xInput){
+                case 1:
+                    this.moveDownRight();
+                    break;
+                case -1:
+                    this.moveDownLeft();
+                    break;
+                default:
+                    this.moveDown();
+                    break;
+            }
+        }else {
+            switch (xInput){
+                case 1:
+                    this.moveRight();
+                    break;
+                case -1:
+                    this.moveLeft();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+
     update() {
         super.update();
         // Move player to mouse

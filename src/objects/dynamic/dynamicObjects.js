@@ -6,6 +6,7 @@ export class DynamicObject extends GameObject {
     animationIncrement = 0;
     animationSpeed = 1;
     animationDirection = "DOWN";
+    max_Velocity = 0.15;
 
     constructor(args) {
         super(args);
@@ -78,7 +79,6 @@ export class DynamicObject extends GameObject {
             console.log(this.velocity.angle());
         }
 
-        //todo: calculate the direction to face:
         switch (this.animationDirection) {
             case "DOWN":
                 //down
