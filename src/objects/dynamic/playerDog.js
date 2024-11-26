@@ -22,6 +22,9 @@ export class PlayerDog extends DynamicObject {
         this.friction = 0.9;
     }
 
+    renderRun = () => this.dynamicRender(spriteAtlas.dog.run);
+    renderIdle = () => this.dynamicRender(spriteAtlas.dog.idle);
+
     update() {
         super.update();
         // Move player to mouse
@@ -34,6 +37,6 @@ export class PlayerDog extends DynamicObject {
     }
 
     render() {
-        this.dynamicRender(spriteAtlas.dog.run);
+        this.renderRun();
     }
 }
