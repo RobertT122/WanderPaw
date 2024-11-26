@@ -22,37 +22,45 @@ export class DynamicObject extends GameObject {
     faceRight = () => this.animationDirection = "RIGHT";
     faceDownRight = () => this.animationDirection = "DOWN_RIGHT";
 
-    moveDown(speed){ 
+    moveDown(speed){
         this.faceDown()
+        this.animationSpeed = 1;
         this.pos += speed * vec2(0, -1);
     }
     moveDownLeft(speed){ 
         this.faceDownLeft()
-        this.pos += speed * vec2(-1, -1).normalize();
+        this.animationSpeed = 1;
+        this.pos += speed * vec2(-0.7071, -0.7071);
     }
     moveLeft(speed){ 
         this.faceLeft();
+        this.animationSpeed = 1;
         this.pos += speed * vec2(-1, 0);
     }
     moveUpLeft(speed){ 
         this.faceUpLeft();
-        this.pos += speed * vec2(-1, 1).normalize();
+        this.animationSpeed = 1;
+        this.pos += speed * vec2(-0.7071, 0.7071);
     }
     moveUp(speed){ 
         this.faceUp();
+        this.animationSpeed = 1;
         this.pos += speed * vec2(0, 1);
     }
     moveUpRight(speed){ 
         this.faceUpRight();
-        this.pos += speed * vec2(1, 1).normalize();
+        this.animationSpeed = 1;
+        this.pos += speed * vec2(0.7071, 0.7071);
     }
     moveRight(speed){ 
         this.faceRight();
+        this.animationSpeed = 1;
         this.pos += speed * vec2(1, 0);
     }
     moveDownRight(speed){ 
         this.faceDownRight();
-        this.pos += speed * vec2(1, -1).normalize();
+        this.animationSpeed = 1;
+        this.pos += speed * vec2(0.7071, -0.7071);
     }
 
     dynamicRender(spriteAtlasAnimation) {
