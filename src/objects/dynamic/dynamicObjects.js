@@ -1,90 +1,66 @@
-import { tile, drawTile, timeDelta, PI } from "littlejsengine";
+import { tile, drawTile, timeDelta, vec2 } from "littlejsengine";
 import { GameObject } from "../gameObjects.js";
 
-export class DynamicObject extends GameObject {
-    cachedTime = 0;
-    animationIncrement = 0;
-    animationSpeed = 1;
-    animationDirection = "DOWN";
-    max_Velocity = 0.15;
-    spriteAtlasAnimation;
-    fixedSpeed;
+export class Direction {
+    static Up = new Direction("up", false, vec2(0, 1));
+    static UpRight = new Direction("upLeft", true, vec2(0.7071, 0.7071));
+    static Right = new Direction("left", true, vec2(1, 0));
+    static DownRight = new Direction("downLeft", true, vec2(0.7071, -0.7071));
+    static Down = new Direction("down", false, vec2(0, -1));
+    static DownLeft = new Direction("downLeft", false, vec2(-0.7071, -0.7071));
+    static Left = new Direction("left", false, vec2(-1, 0));
+    static UpLeft = new Direction("upLeft", false, vec2(-0.7071, 0.7071));
 
+    constructor(animation_name, animation_mirrored, unit_vector) {
+        this.animation_name = animation_name;
+        this.animation_mirrored = animation_mirrored;
+        this.unit_vector = unit_vector;
+    }
+
+    static determineDirection(tragectory) {
+        const upness = Math.cos(tragectory.angle());
+        const isRight = tragectory.x > 0;
+        if (upness > 0.85) {
+            return Direction.Up;
+        } else if (upness > 0.25) {
+            return isRight ? Direction.UpRight : Direction.UpLeft;
+        } else if (upness > -0.25) {
+            return isRight ? Direction.Right : Direction.Left;
+        } else if (upness > -0.85) {
+            return isRight ? Direction.DownRight : Direction.DownLeft;
+        } else {
+            return Direction.Down;
+        }
+    }
+}
+
+export class DynamicObject extends GameObject {
     constructor(args) {
         super(args);
         this.setCollision(true, true);
 
-        // this.objectSpeed = stopped, walk, run
-        // this.animationState = animation type
+        this.cachedTime = 0;
+        this.animationIncrement = 0;
+        this.animationSpeed = 1;
+        this.direction = Direction.Down;
+        this.max_Velocity = 0.15;
+        this.spriteAtlasAnimation;
+        this.objectSpeed = 0;
+        this.animationState;
     }
 
     update() {
+        this.animationSpeed = 1;
+        this.velocity = this.direction.unit_vector.scale(this.objectSpeed);
         super.update();
-
-        const angle_in_degrees = 180 / PI * this.velocity.angle();
-        this.forwardDirection = Math.round((angle_in_degrees / 45 + 4) % 8);
-
-        // Snap angles to 8 directional
-        this.velocity.setAngle((this.forwardDirection - 4) * 45 * PI / 180, this.velocity.length());
-    }
-    
-    faceDown = () => this.animationDirection = "DOWN";
-    faceDownLeft = () => this.animationDirection = "DOWN_LEFT";
-    faceLeft = () => this.animationDirection = "LEFT";
-    faceUpLeft = () => this.animationDirection = "UP_LEFT";
-    faceUp = () => this.animationDirection = "UP";
-    faceUpRight = () => this.animationDirection = "UP_RIGHT";
-    faceRight = () => this.animationDirection = "RIGHT";
-    faceDownRight = () => this.animationDirection = "DOWN_RIGHT";
-
-    moveDown(){
-        this.faceDown();
-        this.animationSpeed = 1;
-        this.velocity.set(vec2(0,-1).scale(this.fixedSpeed));
-    }
-    moveDownLeft(){ 
-        this.faceDownLeft();
-        this.animationSpeed = 1;
-        this.velocity.set(vec2(-0.7071, -0.7071).scale(this.fixedSpeed));
-    }
-    moveLeft(){ 
-        this.faceLeft();
-        this.animationSpeed = 1;
-        this.velocity.set(vec2(-1, 0).scale(this.fixedSpeed));
-    }
-    moveUpLeft(){ 
-        this.faceUpLeft();
-        this.animationSpeed = 1;
-        this.velocity.set(vec2(-0.7071, 0.7071).scale(this.fixedSpeed));
-    }
-    moveUp(){ 
-        this.faceUp();
-        this.animationSpeed = 1;
-        this.velocity.set(vec2(0, 1).scale(this.fixedSpeed));
-    }
-    moveUpRight(){ 
-        this.faceUpRight();
-        this.animationSpeed = 1;
-        this.velocity.set(vec2(0.7071, 0.7071).scale(this.fixedSpeed));
-    }
-    moveRight(){ 
-        this.faceRight();
-        this.animationSpeed = 1;
-        this.velocity.set(vec2(1, 0).scale(this.fixedSpeed));
-    }
-    moveDownRight(){ 
-        this.faceDownRight();
-        this.animationSpeed = 1;
-        this.velocity.set(vec2(0.7071, -0.7071).scale(this.fixedSpeed));
     }
 
     dynamicRender() {
-        var pattern = this.spriteAtlasAnimation.pattern;
-        var timing = this.spriteAtlasAnimation.timing;
-        var mirror = false;
-        
+        const pattern = this.spriteAtlasAnimation.pattern;
+        const timing = this.spriteAtlasAnimation.timing;
+
         this.animationIncrement = this.animationIncrement % pattern.length;
-        var index = pattern[this.animationIncrement];
+        const index = pattern[this.animationIncrement];
 
         this.cachedTime += timeDelta * 500 * this.animationSpeed;
         if (this.cachedTime >= timing[this.animationIncrement]) {
@@ -93,49 +69,14 @@ export class DynamicObject extends GameObject {
             console.log(this.velocity.angle());
         }
 
-        switch (this.animationDirection) {
-            case "DOWN":
-                //down
-                mirror = false;
-                this.tileInfo = tile(this.spriteAtlasAnimation.down[index]);
-                break;
-            case "DOWN_LEFT":
-                //down left
-                mirror = false;
-                this.tileInfo = tile(this.spriteAtlasAnimation.downLeft[index]);
-                break;
-            case "LEFT":
-                //left
-                mirror = false;
-                this.tileInfo = tile(this.spriteAtlasAnimation.left[index]);
-                break;
-            case "UP_LEFT":
-                //up left
-                mirror = false;
-                this.tileInfo = tile(this.spriteAtlasAnimation.upLeft[index]);
-                break;
-            case "UP":
-                //up
-                mirror = false;
-                this.tileInfo = tile(this.spriteAtlasAnimation.up[index]);
-                break;
-            case "UP_RIGHT":
-                //up right
-                mirror = true;
-                this.tileInfo = tile(this.spriteAtlasAnimation.upLeft[index]);
-                break;
-            case "RIGHT":
-                //right
-                mirror = true;
-                this.tileInfo = tile(this.spriteAtlasAnimation.left[index]);
-                break;
-            case "DOWN_RIGHT":
-                //down right
-                mirror = true;
-                this.tileInfo = tile(this.spriteAtlasAnimation.downLeft[index]);
-                break;
-        }
-
-        drawTile(this.pos, this.size, this.tileInfo, this.color, this.angle, mirror);
+        this.tileInfo = tile(this.spriteAtlasAnimation[this.direction.animation_name][index]);
+        drawTile(
+            this.pos,
+            this.size,
+            this.tileInfo,
+            this.color,
+            this.angle,
+            this.direction.animation_mirrored,
+        );
     }
 }

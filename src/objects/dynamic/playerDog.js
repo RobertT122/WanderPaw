@@ -1,6 +1,6 @@
 import { vec2, keyIsDown } from "littlejsengine";
 
-import { DynamicObject } from "./dynamicObjects.js";
+import { DynamicObject, Direction } from "./dynamicObjects.js";
 import { spriteAtlas } from "../../scripts/spriteAtlas.js";
 
 export class PlayerDog extends DynamicObject {
@@ -12,6 +12,7 @@ export class PlayerDog extends DynamicObject {
             pos: pos,
             size: vec2(1),
         });
+        this.spriteAtlasAnimation = spriteAtlas.dog.run;
         this.setCollision(true);
         PlayerDog.player1 = this;
 
@@ -22,61 +23,65 @@ export class PlayerDog extends DynamicObject {
         this.friction = 0.9;
     }
 
-    renderRun = () => this.spriteAtlasAnimation = spriteAtlas.dog.run;
-    renderIdle = () => this.spriteAtlasAnimation = spriteAtlas.dog.idle;
+    renderRun = () => (this.spriteAtlasAnimation = spriteAtlas.dog.run);
+    renderIdle = () => (this.spriteAtlasAnimation = spriteAtlas.dog.idle);
 
-    calculateMovement() {
-        var xInput = keyIsDown("ArrowRight") ? (keyIsDown("ArrowLeft") ? 0 : 1) : (keyIsDown("ArrowLeft") ? -1 : 0);
-        var yInput = keyIsDown("ArrowUp") ? (keyIsDown("ArrowDown") ? 0 : 1) : (keyIsDown("ArrowDown") ? -1 : 0);
+    update() {
+        var xInput = 0;
+        var yInput = 0;
+        if (keyIsDown("ArrowRight") != keyIsDown("ArrowLeft")) {
+            xInput = keyIsDown("ArrowRight") ? 1 : -1;
+        }
+        if (keyIsDown("ArrowUp") != keyIsDown("ArrowDown")) {
+            yInput = keyIsDown("ArrowUp") ? 1 : -1;
+        }
 
-        if (yInput == 1){
-            switch (xInput){
+        // Default to running
+        this.objectSpeed = this.max_velocity;
+        this.renderRun();
+
+        if (yInput == 1) {
+            switch (xInput) {
                 case 1:
-                    this.moveUpRight();
+                    this.direction = Direction.UpRight;
                     break;
                 case -1:
-                    this.moveUpLeft();
+                    this.direction = Direction.UpLeft;
                     break;
                 default:
-                    this.moveUp();
+                    this.direction = Direction.Up;
                     break;
             }
-        }else if (xInput == -1) {
-            switch (xInput){
+        } else if (yInput == -1) {
+            switch (xInput) {
                 case 1:
-                    this.moveDownRight();
+                    this.direction = Direction.DownRight;
                     break;
                 case -1:
-                    this.moveDownLeft();
+                    this.direction = Direction.DownLeft;
                     break;
                 default:
-                    this.moveDown();
+                    this.direction = Direction.Down;
                     break;
             }
-        }else {
-            switch (xInput){
+        } else {
+            switch (xInput) {
                 case 1:
-                    this.moveRight();
+                    this.direction = Direction.Right;
                     break;
                 case -1:
-                    this.moveLeft();
+                    this.direction = Direction.Left;
                     break;
                 default:
+                    // Set to idle if no arrows down
+                    this.objectSpeed = 0;
+                    this.renderIdle();
                     break;
             }
         }
-    }
 
-
-    update() {
+        console.log(this.objectSpeed);
         super.update();
-        // Move player to mouse
-        const move_input_force = vec2(
-            keyIsDown("ArrowRight") - keyIsDown("ArrowLeft"),
-            keyIsDown("ArrowUp") - keyIsDown("ArrowDown"),
-        ).scale(0.075);
-        this.velocity = this.velocity.add(move_input_force).clampLength(this.max_velocity);
-        this.velocity = this.velocity.scale(this.friction);
     }
 
     render() {
