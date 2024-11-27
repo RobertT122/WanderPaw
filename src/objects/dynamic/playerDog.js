@@ -22,8 +22,8 @@ export class PlayerDog extends DynamicObject {
         this.friction = 0.9;
     }
 
-    renderRun = () => this.dynamicRender(spriteAtlas.dog.run);
-    renderIdle = () => this.dynamicRender(spriteAtlas.dog.idle);
+    renderRun = () => this.spriteAtlasAnimation = spriteAtlas.dog.run;
+    renderIdle = () => this.spriteAtlasAnimation = spriteAtlas.dog.idle;
 
     calculateMovement() {
         var xInput = keyIsDown("ArrowRight") ? (keyIsDown("ArrowLeft") ? 0 : 1) : (keyIsDown("ArrowLeft") ? -1 : 0);
@@ -80,6 +80,6 @@ export class PlayerDog extends DynamicObject {
     }
 
     render() {
-        this.renderRun();
+        this.dynamicRender();
     }
 }

@@ -152,13 +152,17 @@ export class Sheep extends DynamicObject {
         this.color = new Color(1, 1 - this.startled_pct, 1 - this.startled_pct, 1);
     }
 
-    renderIdle = () => this.dynamicRender(spriteAtlas.sheep.idle);
-    renderGraze = () => this.dynamicRender(spriteAtlas.sheep.graze);
-    renderPrance = () => this.dyamicRender(spriteAtlas.sheep.prance);
-    renderWaddle = () => this.dynamicRender(spriteAtlas.sheep.waddle);
-    renderSleep = () => this.dynamicRender(spriteAtlas.sheep.sleep);
+    renderGraze = () => this.spriteAtlasAnimation = spriteAtlas.sheep.graze;
+    renderPrance = () => this.spriteAtlasAnimation = spriteAtlas.sheep.prance;
+    renderWaddle = () => this.spriteAtlasAnimation = spriteAtlas.sheep.waddle;
+    renderSleep = () => this.spriteAtlasAnimation = spriteAtlas.sheep.sleep;
+
+    waddleSlow() {
+        this.renderWaddle();
+        this.fixedSpeed = 1;
+    }
 
     render() {
-        this.renderWaddle();
+        this.dynamicRender()
     }
 }
