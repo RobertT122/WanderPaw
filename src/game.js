@@ -54,16 +54,23 @@ function gameRender() {
 
 function gameRenderPost() {
     // Debug text for number of sheep and startled % statistics
+    // drawTextScreen(
+    //     "# sheep " +
+    //         Sheep.flock.all().length +
+    //         "\navg startled %" +
+    //         Math.round(
+    //             (Sheep.flock.all().reduce((t, s) => t + s.startled_pct, 0) /
+    //                 Sheep.flock.all().length) *
+    //                 100,
+    //         ) /
+    //             100,
+    //     vec2(mainCanvasSize.x / 2, 70),
+    //     30,
+    // );
     drawTextScreen(
-        "# sheep " +
-            Sheep.flock.all().length +
-            "\navg startled %" +
-            Math.round(
-                (Sheep.flock.all().reduce((t, s) => t + s.startled_pct, 0) /
-                    Sheep.flock.all().length) *
-                    100,
-            ) /
-                100,
+        "v=" + PlayerDog.player1.velocity +
+        "\ntheta=" + PlayerDog.player1.velocity.angle() +
+        "\ndir=" + PlayerDog.player1.forwardDirection,
         vec2(mainCanvasSize.x / 2, 70),
         30,
     );

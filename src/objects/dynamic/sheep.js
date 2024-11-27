@@ -33,7 +33,7 @@ export class Sheep extends DynamicObject {
     constructor(pos) {
         super({
             pos: pos,
-            size: vec2(0.5),
+            size: vec2(1),
             color: new Color(),
         });
         console.log(this.pos);
@@ -60,8 +60,8 @@ export class Sheep extends DynamicObject {
         this.visible_sheep_radius = 3;
 
         this.avoid_sheep_factor = 0.005;
-        this.match_sheep_factor = 0.05;
-        this.align_sheep_factor = 0.003;
+        this.match_sheep_factor = 0.07;
+        this.align_sheep_factor = 0.01;
 
         // Meandering parameters
         this.meander_chance = 0.003;
@@ -83,7 +83,7 @@ export class Sheep extends DynamicObject {
             const avoid_player_force = this.pos
                 .subtract(PlayerDog.player1.pos)
                 .normalize()
-                .scale((player_dist / this.avoid_player_radius) * this.avoid_player_factor);
+                .scale(this.avoid_player_factor);
             this.velocity = this.velocity.add(avoid_player_force);
         }
 

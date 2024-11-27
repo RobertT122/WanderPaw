@@ -1,4 +1,4 @@
-import { tile, drawTile, vec2, timeDelta } from "littlejsengine";
+import { tile, drawTile, timeDelta, PI } from "littlejsengine";
 import { GameObject } from "../gameObjects.js";
 
 export class DynamicObject extends GameObject {
@@ -13,7 +13,19 @@ export class DynamicObject extends GameObject {
     constructor(args) {
         super(args);
         this.setCollision(true, true);
-        this.size = vec2(2);
+
+        // this.objectSpeed = stopped, walk, run
+        // this.animationState = animation type
+    }
+
+    update() {
+        super.update();
+
+        const angle_in_degrees = 180 / PI * this.velocity.angle();
+        this.forwardDirection = Math.round((angle_in_degrees / 45 + 4) % 8);
+
+        // Snap angles to 8 directional
+        this.velocity.setAngle((this.forwardDirection - 4) * 45 * PI / 180, this.velocity.length());
     }
     
     faceDown = () => this.animationDirection = "DOWN";

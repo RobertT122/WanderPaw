@@ -10,9 +10,9 @@ export class PlayerDog extends DynamicObject {
     constructor(pos) {
         super({
             pos: pos,
-            size: vec2(0.6),
+            size: vec2(1),
         });
-        this.setCollision(false);
+        this.setCollision(true);
         PlayerDog.player1 = this;
 
         // Behavior variables
