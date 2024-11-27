@@ -1,6 +1,6 @@
 import { vec2, Color, rand, randVector, keyWasPressed } from "littlejsengine";
 
-import { DynamicObject } from "./dynamicObjects.js";
+import { Direction, DynamicObject } from "./dynamicObjects.js";
 import { PlayerDog } from "./playerDog.js";
 import { spriteAtlas } from "../../scripts/spriteAtlas.js";
 
@@ -33,9 +33,10 @@ export class Sheep extends DynamicObject {
     constructor(pos) {
         super({
             pos: pos,
-            size: vec2(0.5),
+            size: vec2(1),
             color: new Color(),
         });
+        this.spriteAtlasAnimation = spriteAtlas.sheep.idle;
         console.log(this.pos);
         Sheep.flock.add(this);
         console.log(this.pos);
@@ -47,8 +48,8 @@ export class Sheep extends DynamicObject {
         this.max_velocity = 0.1;
 
         // Player interaction parameters
-        this.avoid_player_radius = 1.1;
-        this.avoid_player_factor = 0.1;
+        this.avoid_player_radius = 2;
+        this.avoid_player_factor = 0.5;
 
         this.avoid_bark_radius = 8;
         this.avoid_bark_factor = 1;
@@ -61,7 +62,7 @@ export class Sheep extends DynamicObject {
 
         this.avoid_sheep_factor = 0.005;
         this.match_sheep_factor = 0.05;
-        this.align_sheep_factor = 0.003;
+        this.align_sheep_factor = 0.005;
 
         // Meandering parameters
         this.meander_chance = 0.003;
@@ -83,7 +84,7 @@ export class Sheep extends DynamicObject {
             const avoid_player_force = this.pos
                 .subtract(PlayerDog.player1.pos)
                 .normalize()
-                .scale((player_dist / this.avoid_player_radius) * this.avoid_player_factor);
+                .scale(this.avoid_player_factor);
             this.velocity = this.velocity.add(avoid_player_force);
         }
 
@@ -149,9 +150,24 @@ export class Sheep extends DynamicObject {
         this.velocity = this.velocity.scale(friction);
         this.velocity = this.velocity.clampLength(this.max_velocity);
 
+        // Convert velocity to direction and speed
+        this.direction = Direction.determineDirection(this.velocity);
+        this.objectSpeed = this.velocity.length();
+
         this.color = new Color(1, 1 - this.startled_pct, 1 - this.startled_pct, 1);
     }
+
+    renderGraze = () => (this.spriteAtlasAnimation = spriteAtlas.sheep.graze);
+    renderPrance = () => (this.spriteAtlasAnimation = spriteAtlas.sheep.prance);
+    renderWaddle = () => (this.spriteAtlasAnimation = spriteAtlas.sheep.waddle);
+    renderSleep = () => (this.spriteAtlasAnimation = spriteAtlas.sheep.sleep);
+
+    waddleSlow() {
+        this.renderWaddle();
+        this.objectSpeed = 1;
+    }
+
     render() {
-        this.dynamicRender(spriteAtlas.sheep.waddle);
+        this.dynamicRender();
     }
 }
