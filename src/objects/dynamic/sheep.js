@@ -1,6 +1,7 @@
-import { vec2, Color, rand, randVector, keyWasPressed } from "littlejsengine";
+import { vec2, Color, rand, randVector, keyWasPressed, Timer } from "littlejsengine";
 
-import { Direction, DynamicObject } from "./dynamicObjects.js";
+import { Direction } from "../direction.js";
+import { DynamicObject } from "./dynamicObjects.js";
 import { PlayerDog } from "./playerDog.js";
 import { spriteAtlas } from "../../scripts/spriteAtlas.js";
 
@@ -34,137 +35,104 @@ export class Sheep extends DynamicObject {
         super({
             pos: pos,
             size: vec2(1),
-            color: new Color(),
         });
         this.spriteAtlasAnimation = spriteAtlas.sheep.idle;
-        console.log(this.pos);
         Sheep.flock.add(this);
-        console.log(this.pos);
-
-        // State variables
-        this.startled_pct = 0;
 
         // Behavior variables
-        this.max_velocity = 0.1;
+        this.prance_velocity = 0.07;
+        this.waddle_velocity = 0.03;
 
-        // Player interaction parameters
-        this.avoid_player_radius = 2;
-        this.avoid_player_factor = 0.5;
+        // Avoid player parameters
+        this.avoid_player_radius = 3;
 
+        this.avoid_player_seconds = 1;
+        this.avoid_player_timer = new Timer();
+
+        // Avoid bark parameters
         this.avoid_bark_radius = 8;
-        this.avoid_bark_factor = 1;
+        this.avoid_bark_pct_prance = 0.6;
 
-        this.herding_player_radius = 6;
+        this.avoid_bark_seconds = 2.5;
+        this.avoid_bark_timer = new Timer();
 
-        // Boid/herding parameters
-        this.protected_sheep_radius = 0.6;
-        this.visible_sheep_radius = 3;
-
-        this.avoid_sheep_factor = 0.005;
-        this.match_sheep_factor = 0.05;
-        this.align_sheep_factor = 0.005;
-
-        // Meandering parameters
+        // Meander parameters
+        this.meander_velocity = 0.025;
         this.meander_chance = 0.003;
-        this.meander_factor = 0.06;
-        this.meander_started_hurdle = 0.25;
 
-        // Movement parameters
-        this.startled_cooldown = 0.995;
-        this.min_friction = 0.95;
-        this.max_friction = 0.995;
+        this.meander_seconds = 0.5;
+        this.meander_timer = new Timer();
+    }
+
+    prance() {
+        this.objectSpeed = this.prance_velocity;
+        this.spriteAtlasAnimation = spriteAtlas.sheep.prance;
+    }
+
+    waddle() {
+        this.objectSpeed = this.waddle_velocity;
+        this.spriteAtlasAnimation = spriteAtlas.sheep.waddle;
+    }
+
+    graze() {
+        this.objectSpeed = 0;
+        this.spriteAtlasAnimation = spriteAtlas.sheep.graze;
+    }
+
+    sleep() {
+        this.objectSpeed = 0;
+        this.spriteAtlasAnimation = spriteAtlas.sheep.sleep;
+    }
+
+    getPlayerAntiDirection() {
+        return Direction.determineDirection(this.pos.subtract(PlayerDog.player1.pos).normalize());
+    }
+    getRandomDirection() {
+        return Direction.determineDirection(randVector(1));
     }
 
     update() {
         super.update();
         const player_dist = this.pos.distance(PlayerDog.player1.pos);
 
-        // Avoid the player within a protected range
-        if (player_dist <= this.avoid_player_radius) {
-            const avoid_player_force = this.pos
-                .subtract(PlayerDog.player1.pos)
-                .normalize()
-                .scale(this.avoid_player_factor);
-            this.velocity = this.velocity.add(avoid_player_force);
-        }
-
-        // Avoid the player after bark
+        // Start behavoir timers
         if (keyWasPressed("Space") && player_dist <= this.avoid_bark_radius) {
-            this.startled_pct = 1;
-            const avoid_player_bark_force = this.pos
-                .subtract(PlayerDog.player1.pos)
-                .normalize()
-                .scale(this.avoid_bark_factor);
-            this.velocity = this.velocity.add(avoid_player_bark_force);
+            // Start startled timer when player barks
+            this.avoid_bark_timer.set(this.avoid_bark_seconds);
+        } else if (player_dist <= this.avoid_player_radius) {
+            // Avoid the player within a protected range
+            this.avoid_player_timer.set(this.avoid_player_seconds);
+        } else if (rand(0, 1) < this.meander_chance) {
+            // Meander randomly
+            this.meander_timer.set(this.meander_seconds);
         }
 
-        // Enable boid/herding behavior when nearby the player
-        if (player_dist <= this.herding_player_radius) {
-            const visible_sheep = Sheep.flock.within(this, this.visible_sheep_radius);
-            const avoided_sheep = Sheep.flock.within(this, this.protected_sheep_radius);
-
-            // Avoid other sheep within a protected range
-            const avoid_sheep_force = avoided_sheep.reduce(
-                (total, sheep) =>
-                    total.add(this.pos.subtract(sheep.pos).scale(this.avoid_sheep_factor)),
-                vec2(0),
+        if (this.avoid_bark_timer.active()) {
+            // Avoid the player after bark
+            this.direction = this.getPlayerAntiDirection();
+            if (this.avoid_bark_timer.getPercent() < this.avoid_bark_pct_prance) {
+                this.prance();
+            } else {
+                this.waddle();
+            }
+            this.color = new Color(
+                1,
+                this.avoid_bark_timer.getPercent(),
+                this.avoid_bark_timer.getPercent(),
+                1,
             );
-
-            // Align velocity of other sheep within a visual range
-            const sheep_to_match_avg_velocity = visible_sheep
-                .reduce((total, sheep) => total.add(sheep.velocity), vec2(0))
-                .scale(1 / visible_sheep.length);
-
-            const match_sheep_force = sheep_to_match_avg_velocity
-                .subtract(this.velocity)
-                .scale(this.match_sheep_factor);
-
-            // Align direction with other sheep in visual range
-            const sheep_to_align = visible_sheep;
-            const sheep_to_align_avg_pos = sheep_to_align
-                .reduce((total, sheep) => total.add(sheep.pos), vec2(0))
-                .scale(1 / visible_sheep.length);
-
-            const align_sheep_force = sheep_to_align_avg_pos
-                .subtract(this.pos)
-                .scale(this.align_sheep_factor);
-
-            // Sheep show stronger herding behavior when startled
-            const boid_force = avoid_sheep_force
-                .add(match_sheep_force)
-                .add(align_sheep_force)
-                .scale(this.startled_pct);
-            this.velocity = this.velocity.add(boid_force);
+        } else if (this.avoid_player_timer.active()) {
+            this.direction = this.getPlayerAntiDirection();
+            this.waddle();
+        } else if (this.meander_timer.active()) {
+            if (this.meander_timer.getPercent() == 1) {
+                this.direction = this.getRandomDirection();
+            }
+            this.waddle();
+        } else {
+            // If no forces, stop and graze
+            this.graze();
         }
-
-        // Meander if not started
-        if (this.startled_pct < this.meander_started_hurdle && rand(0, 1) < this.meander_chance) {
-            const meander_force = randVector(this.meander_factor);
-            this.velocity = this.velocity.add(meander_force);
-        }
-
-        // Cap velocity after applying other forces
-        const friction =
-            this.startled_pct * (this.max_friction - this.min_friction) + this.min_friction;
-        this.startled_pct = this.startled_cooldown * this.startled_pct;
-        this.velocity = this.velocity.scale(friction);
-        this.velocity = this.velocity.clampLength(this.max_velocity);
-
-        // Convert velocity to direction and speed
-        this.direction = Direction.determineDirection(this.velocity);
-        this.objectSpeed = this.velocity.length();
-
-        this.color = new Color(1, 1 - this.startled_pct, 1 - this.startled_pct, 1);
-    }
-
-    renderGraze = () => (this.spriteAtlasAnimation = spriteAtlas.sheep.graze);
-    renderPrance = () => (this.spriteAtlasAnimation = spriteAtlas.sheep.prance);
-    renderWaddle = () => (this.spriteAtlasAnimation = spriteAtlas.sheep.waddle);
-    renderSleep = () => (this.spriteAtlasAnimation = spriteAtlas.sheep.sleep);
-
-    waddleSlow() {
-        this.renderWaddle();
-        this.objectSpeed = 1;
     }
 
     render() {

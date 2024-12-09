@@ -1,6 +1,7 @@
 import { vec2, keyIsDown } from "littlejsengine";
 
-import { DynamicObject, Direction } from "./dynamicObjects.js";
+import { Direction } from "../direction.js";
+import { DynamicObject } from "./dynamicObjects.js";
 import { spriteAtlas } from "../../scripts/spriteAtlas.js";
 
 export class PlayerDog extends DynamicObject {
@@ -17,16 +18,21 @@ export class PlayerDog extends DynamicObject {
         PlayerDog.player1 = this;
 
         // Behavior variables
-        this.max_velocity = 0.15;
-
-        // Movement parameters
-        this.friction = 0.9;
+        this.run_velocity = 0.15;
     }
 
-    renderRun = () => (this.spriteAtlasAnimation = spriteAtlas.dog.run);
-    renderIdle = () => (this.spriteAtlasAnimation = spriteAtlas.dog.idle);
+    run() {
+        this.objectSpeed = this.run_velocity;
+        this.spriteAtlasAnimation = spriteAtlas.dog.run;
+    }
+
+    idle() {
+        this.objectSpeed = 0;
+        this.spriteAtlasAnimation = spriteAtlas.dog.idle;
+    }
 
     update() {
+        super.update();
         var xInput = 0;
         var yInput = 0;
         if (keyIsDown("ArrowRight") != keyIsDown("ArrowLeft")) {
@@ -36,52 +42,53 @@ export class PlayerDog extends DynamicObject {
             yInput = keyIsDown("ArrowUp") ? 1 : -1;
         }
 
-        // Default to running
-        this.objectSpeed = this.max_velocity;
-        this.renderRun();
-
+        // Determine direction from arrow presses
         if (yInput == 1) {
             switch (xInput) {
                 case 1:
                     this.direction = Direction.UpRight;
+                    this.run();
                     break;
                 case -1:
                     this.direction = Direction.UpLeft;
+                    this.run();
                     break;
                 default:
                     this.direction = Direction.Up;
+                    this.run();
                     break;
             }
         } else if (yInput == -1) {
             switch (xInput) {
                 case 1:
                     this.direction = Direction.DownRight;
+                    this.run();
                     break;
                 case -1:
                     this.direction = Direction.DownLeft;
+                    this.run();
                     break;
                 default:
                     this.direction = Direction.Down;
+                    this.run();
                     break;
             }
         } else {
             switch (xInput) {
                 case 1:
                     this.direction = Direction.Right;
+                    this.run();
                     break;
                 case -1:
                     this.direction = Direction.Left;
+                    this.run();
                     break;
                 default:
                     // Set to idle if no arrows down
-                    this.objectSpeed = 0;
-                    this.renderIdle();
+                    this.idle();
                     break;
             }
         }
-
-        console.log(this.objectSpeed);
-        super.update();
     }
 
     render() {
